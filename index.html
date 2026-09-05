@@ -37,7 +37,7 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;o
   background:radial-gradient(circle,rgba(232,118,58,.09),transparent 62%);transform:translate(-50%,-50%);
   transition:opacity .4s;opacity:0;will-change:transform}
 
-#progress{position:fixed;top:0;left:0;height:3px;width:0;z-index:1000;
+#progress{position:fixed;top:0;left:0;height:3px;width:100%;transform:scaleX(0);transform-origin:0 50%;z-index:1000;will-change:transform;
   background:linear-gradient(90deg,var(--a1),var(--a2));box-shadow:0 0 14px rgba(232,118,58,.55)}
 
 h1,h2,h3,h4,.brand,.stepnum,.kicker-big{font-family:'Benzin',sans-serif;text-transform:uppercase;font-weight:700;letter-spacing:-.01em}
@@ -483,7 +483,7 @@ function raf(){
   cgx+=(tx-cgx)*.12; cgy+=(ty-cgy)*.12;
   cg.style.transform=`translate(${cgx}px,${cgy}px) translate(-50%,-50%)`;
   const h=document.documentElement;
-  pr.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%';
+  pr.style.transform='scaleX('+(h.scrollTop/(h.scrollHeight-h.clientHeight))+')';
   if(hero) hero.style.transform=`translateY(${h.scrollTop*.06}px)`;
   frames.forEach(f=>{
     const r=f.getBoundingClientRect();
