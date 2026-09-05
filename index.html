@@ -96,9 +96,9 @@ h2 em{font-style:normal;background:linear-gradient(100deg,var(--a1),var(--a2));-
 .tool{display:flex;align-items:center;gap:18px;padding:19px 22px;background:var(--bg2);border:1px solid var(--line);
   border-radius:4px;text-decoration:none;color:inherit;position:relative;overflow:hidden;
   transition:transform .28s,border-color .28s;margin-bottom:11px}
-.tool::before{content:'';position:absolute;left:0;top:0;bottom:0;width:0;background:linear-gradient(180deg,var(--a1),var(--a2));transition:width .28s}
+.tool::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,var(--a1),var(--a2));transform:scaleX(0);transform-origin:0 50%;transition:transform .28s}
 .tool:hover{transform:translateX(9px);border-color:rgba(232,118,58,.30)}
-.tool:hover::before{width:3px}
+.tool:hover::before{transform:scaleX(1)}
 .tname{font-family:'Benzin',sans-serif;font-weight:700;text-transform:uppercase;font-size:15px;letter-spacing:.01em}
 .turl{font-family:var(--mono);font-size:12px;color:var(--tx3);margin-top:3px;word-break:break-all}
 .tpill{margin-left:auto;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;
