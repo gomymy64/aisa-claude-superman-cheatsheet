@@ -55,7 +55,7 @@ nav{position:sticky;top:0;z-index:900;background:rgba(11,10,9,.86);backdrop-filt
 @media(max-width:640px){.navlinks a:nth-child(1){display:none}}
 
 /* ─── HERO ─── */
-.hero{position:relative;width:100%;aspect-ratio:1800/1012;min-height:520px;overflow:hidden;display:flex;align-items:flex-end}
+.hero{position:relative;width:100%;aspect-ratio:16/9;min-height:520px;overflow:hidden;display:flex;align-items:flex-end}
 .heroimg{position:absolute;inset:-8% 0 -8% 0;background:url('img/hero.jpg') center/cover no-repeat;will-change:transform}
 .heroshade{position:absolute;inset:0;
   background:linear-gradient(180deg,rgba(11,10,9,.80) 0%,rgba(11,10,9,.30) 34%,rgba(11,10,9,.72) 72%,var(--bg) 100%)}
@@ -140,7 +140,7 @@ h2 em{font-style:normal;background:linear-gradient(100deg,var(--a1),var(--a2));-
 .pbody::-webkit-scrollbar-thumb{background:linear-gradient(180deg,var(--a1),var(--a2));border-radius:6px;border:2px solid var(--bg2)}
 
 /* ─── FULL-BLEED FRAME ─── */
-.frame{position:relative;width:100%;aspect-ratio:1800/1012;overflow:hidden;margin:clamp(14px,3vh,34px) 0}
+.frame{position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;margin:clamp(14px,3vh,34px) 0}
 .frame .fimg{position:absolute;inset:-8% 0 -8% 0;background-size:cover;background-position:center;will-change:transform}
 .frame .fshade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(11,10,9,.42),rgba(11,10,9,.10) 40%,rgba(11,10,9,.86))}
 .fcap{position:absolute;left:clamp(20px,4vw,64px);bottom:clamp(24px,5vh,56px);z-index:2;max-width:22ch}
