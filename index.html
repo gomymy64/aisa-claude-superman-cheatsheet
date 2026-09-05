@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Материалы к Уроку КАК Я ПРЕВРАТИЛ CLAUDE В СУПЕРМЕНА ПОИСКА | Мастодонт</title>
+<style>
+@font-face{font-family:'Benzin';src:url('fonts/Benzin-Semibold.ttf') format('truetype');font-weight:600;font-display:swap}
+@font-face{font-family:'Benzin';src:url('fonts/Benzin-Bold.ttf') format('truetype');font-weight:700;font-display:swap}
+@font-face{font-family:'Benzin';src:url('fonts/Benzin-ExtraBold.ttf') format('truetype');font-weight:800;font-display:swap}
+@font-face{font-family:'Onest';src:url('fonts/Onest-Regular.ttf') format('truetype');font-weight:400;font-display:swap}
+@font-face{font-family:'Onest';src:url('fonts/Onest-Medium.ttf') format('truetype');font-weight:500;font-display:swap}
+@font-face{font-family:'Onest';src:url('fonts/Onest-Bold.ttf') format('truetype');font-weight:700;font-display:swap}
+
+:root{
+  --bg:#0B0A09; --bg2:#131110; --bg3:#1A1715;
+  --a1:#E8763A; --a2:#C8FF3D; --gold:#F2DB82;
+  --tx:#EFEAE2; --tx2:#A29B90; --tx3:#6B655C;
+  --line:rgba(239,234,226,.10);
+  --mono:'SFMono-Regular',Consolas,'Liberation Mono',Menlo,monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scrollbar-width:thin;scrollbar-color:var(--a1) var(--bg2);scroll-behavior:smooth}
+html::-webkit-scrollbar{width:12px}
+html::-webkit-scrollbar-track{background:var(--bg2)}
+html::-webkit-scrollbar-thumb{background:linear-gradient(180deg,var(--a1),var(--a2));border-radius:8px;border:3px solid var(--bg2)}
+html::-webkit-scrollbar-thumb:hover{background:var(--a1)}
+
+body{background:var(--bg);color:var(--tx);font-family:'Onest',sans-serif;font-size:clamp(15px,1.05vw,17px);line-height:1.65;overflow-x:hidden;position:relative}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(60vw 50vh at 12% 8%,rgba(232,118,58,.10),transparent 60%),
+             radial-gradient(50vw 45vh at 88% 62%,rgba(200,255,61,.055),transparent 62%)}
+body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;opacity:.025;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E")}
+
+#cursorglow{position:fixed;width:520px;height:520px;border-radius:50%;pointer-events:none;z-index:1;
+  background:radial-gradient(circle,rgba(232,118,58,.09),transparent 62%);transform:translate(-50%,-50%);
+  transition:opacity .4s;opacity:0;will-change:transform}
+
+#progress{position:fixed;top:0;left:0;height:3px;width:0;z-index:1000;
+  background:linear-gradient(90deg,var(--a1),var(--a2));box-shadow:0 0 14px rgba(232,118,58,.55)}
+
+h1,h2,h3,h4,.brand,.stepnum,.kicker-big{font-family:'Benzin',sans-serif;text-transform:uppercase;font-weight:700;letter-spacing:-.01em}
+
+/* ─── NAV ─── */
+nav{position:sticky;top:0;z-index:900;background:rgba(11,10,9,.86);backdrop-filter:blur(16px);
+  border-bottom:1px solid transparent;
+  border-image:linear-gradient(90deg,transparent,var(--a1),var(--a2),transparent) 1}
+.navin{max-width:1360px;margin:0 auto;padding:16px clamp(20px,4vw,64px);display:flex;align-items:center;justify-content:space-between;gap:20px}
+.brand{font-size:clamp(15px,1.3vw,19px);font-weight:800;letter-spacing:.04em}
+.brand span{color:var(--a1)}
+.navlinks{display:flex;gap:clamp(14px,2vw,30px);font-size:13px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.08em}
+.navlinks a{color:var(--tx2);text-decoration:none;transition:color .25s;white-space:nowrap}
+.navlinks a:hover{color:var(--a1)}
+@media(max-width:640px){.navlinks a:nth-child(1){display:none}}
+
+/* ─── HERO ─── */
+.hero{position:relative;width:100%;aspect-ratio:1800/1012;min-height:520px;overflow:hidden;display:flex;align-items:flex-end}
+.heroimg{position:absolute;inset:-8% 0 -8% 0;background:url('img/hero.jpg') center/cover no-repeat;will-change:transform}
+.heroshade{position:absolute;inset:0;
+  background:linear-gradient(180deg,rgba(11,10,9,.80) 0%,rgba(11,10,9,.30) 34%,rgba(11,10,9,.72) 72%,var(--bg) 100%)}
+.heroin{position:relative;z-index:2;max-width:1360px;margin:0 auto;width:100%;padding:0 clamp(20px,4vw,64px) clamp(38px,6vh,84px)}
+.badge{display:inline-block;font-family:var(--mono);font-size:11px;letter-spacing:.20em;text-transform:uppercase;
+  color:var(--a2);border:1px solid rgba(200,255,61,.32);padding:7px 15px;border-radius:2px;margin-bottom:22px;background:rgba(200,255,61,.05)}
+.hero h1{font-size:clamp(30px,5.4vw,78px);line-height:.98;font-weight:800;max-width:16ch}
+.hero h1 em{font-style:normal;color:var(--a1);text-shadow:0 0 28px rgba(232,118,58,.55),0 0 60px rgba(232,118,58,.30),0 0 100px rgba(232,118,58,.16)}
+.herosub{margin-top:20px;max-width:56ch;color:var(--tx2);font-size:clamp(15px,1.2vw,19px)}
+.ytbtn{display:inline-flex;align-items:center;gap:11px;margin-top:28px;padding:14px 26px;border-radius:3px;
+  background:linear-gradient(135deg,var(--a1),#d0562a);color:#0B0A09;text-decoration:none;
+  font-family:'Benzin',sans-serif;font-weight:700;text-transform:uppercase;font-size:13px;letter-spacing:.05em;
+  box-shadow:0 12px 40px rgba(232,118,58,.34);transition:transform .25s,box-shadow .25s}
+.ytbtn:hover{transform:translateY(-2px);box-shadow:0 18px 52px rgba(232,118,58,.48)}
+.ytbtn svg{width:19px;height:19px;flex:none}
+
+/* ─── SECTION SHELL ─── */
+section{position:relative;z-index:2}
+.wrap{max-width:1360px;margin:0 auto;padding:clamp(56px,8vh,110px) clamp(20px,4vw,64px)}
+.seclabel{font-family:var(--mono);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--tx3);
+  display:flex;align-items:center;gap:14px;margin-bottom:16px}
+.seclabel::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--line),transparent)}
+h2{font-size:clamp(24px,3.4vw,46px);line-height:1.04;font-weight:800;margin-bottom:clamp(26px,4vh,50px)}
+h2 em{font-style:normal;background:linear-gradient(100deg,var(--a1),var(--a2));-webkit-background-clip:text;background-clip:text;color:transparent}
+
+/* ─── LEARN CARDS ─── */
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(272px,1fr));gap:clamp(14px,1.6vw,22px)}
+.lcard{position:relative;background:linear-gradient(150deg,var(--bg3),var(--bg2));border:1px solid var(--line);
+  border-radius:4px;padding:26px 24px 24px;overflow:hidden;transition:transform .3s,border-color .3s}
+.lcard::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--a1),var(--a2))}
+.lcard::after{content:'';position:absolute;top:-40%;right:-30%;width:180px;height:180px;border-radius:50%;
+  background:radial-gradient(circle,rgba(232,118,58,.13),transparent 68%);pointer-events:none}
+.lcard:hover{border-color:rgba(232,118,58,.30)}
+.lico{font-family:var(--mono);font-size:12px;color:var(--a2);letter-spacing:.12em;margin-bottom:12px}
+.lcard p{color:var(--tx);font-size:15px}
+
+/* ─── TOOLS ─── */
+.tool{display:flex;align-items:center;gap:18px;padding:19px 22px;background:var(--bg2);border:1px solid var(--line);
+  border-radius:4px;text-decoration:none;color:inherit;position:relative;overflow:hidden;
+  transition:transform .28s,border-color .28s;margin-bottom:11px}
+.tool::before{content:'';position:absolute;left:0;top:0;bottom:0;width:0;background:linear-gradient(180deg,var(--a1),var(--a2));transition:width .28s}
+.tool:hover{transform:translateX(9px);border-color:rgba(232,118,58,.30)}
+.tool:hover::before{width:3px}
+.tname{font-family:'Benzin',sans-serif;font-weight:700;text-transform:uppercase;font-size:15px;letter-spacing:.01em}
+.turl{font-family:var(--mono);font-size:12px;color:var(--tx3);margin-top:3px;word-break:break-all}
+.tpill{margin-left:auto;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;
+  padding:5px 11px;border-radius:2px;border:1px solid rgba(200,255,61,.30);color:var(--a2);background:rgba(200,255,61,.06);white-space:nowrap;flex:none}
+.tpill.pay{border-color:rgba(242,219,130,.30);color:var(--gold);background:rgba(242,219,130,.06)}
+
+/* ─── STEPS ─── */
+.step{display:grid;grid-template-columns:minmax(96px,150px) 1fr;gap:clamp(18px,3vw,48px);
+  padding:clamp(26px,3.6vh,42px) 0;border-top:1px solid var(--line);position:relative}
+.stepnum{font-size:clamp(50px,7vw,104px);line-height:.82;color:transparent;-webkit-text-stroke:1.5px rgba(232,118,58,.42);
+  position:sticky;top:110px;align-self:start;font-weight:800}
+.step h3{font-size:clamp(19px,2.2vw,29px);margin-bottom:13px;line-height:1.14}
+.step > div > p{color:var(--tx2);margin-bottom:19px;max-width:70ch}
+.acts{list-style:none;margin-bottom:22px}
+.acts li{padding-left:24px;position:relative;margin-bottom:9px;color:var(--tx)}
+.acts li::before{content:'▸';position:absolute;left:0;color:var(--a1)}
+.note{border-left:2px solid var(--a2);background:rgba(200,255,61,.045);padding:14px 18px;border-radius:0 3px 3px 0;
+  color:var(--tx2);font-size:14.5px;margin-top:18px}
+.note b{color:var(--a2);font-weight:500}
+@media(max-width:760px){
+  .step{grid-template-columns:1fr;gap:12px}
+  .stepnum{position:static;font-size:44px}
+}
+
+/* ─── PROMPT ─── */
+.pbox{background:linear-gradient(155deg,#141110,#0D0C0B);border:1px solid var(--line);border-left:3px solid transparent;
+  border-image:linear-gradient(180deg,var(--a1),var(--a2)) 1;border-radius:0 4px 4px 0;
+  box-shadow:0 22px 60px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.045);overflow:hidden;margin-top:6px}
+.phead{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:13px 18px;border-bottom:1px solid var(--line);background:rgba(255,255,255,.018)}
+.plabel{font-family:var(--mono);font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--a1)}
+.copy{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;
+  background:transparent;border:1px solid var(--line);color:var(--tx2);padding:7px 14px;border-radius:2px;transition:all .22s;white-space:nowrap}
+.copy:hover{border-color:var(--a1);color:var(--a1)}
+.copy.done{border-color:var(--a2);color:var(--a2)}
+.pbody{padding:19px;font-family:var(--mono);font-size:13.5px;line-height:1.72;color:#D8D2C8;white-space:pre-wrap;
+  max-height:440px;overflow:auto;scrollbar-width:thin;scrollbar-color:var(--a1) var(--bg2)}
+.pbody::-webkit-scrollbar{width:10px}
+.pbody::-webkit-scrollbar-track{background:var(--bg2)}
+.pbody::-webkit-scrollbar-thumb{background:linear-gradient(180deg,var(--a1),var(--a2));border-radius:6px;border:2px solid var(--bg2)}
+
+/* ─── FULL-BLEED FRAME ─── */
+.frame{position:relative;width:100%;aspect-ratio:1800/1012;overflow:hidden;margin:clamp(14px,3vh,34px) 0}
+.frame .fimg{position:absolute;inset:-8% 0 -8% 0;background-size:cover;background-position:center;will-change:transform}
+.frame .fshade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(11,10,9,.42),rgba(11,10,9,.10) 40%,rgba(11,10,9,.86))}
+.fcap{position:absolute;left:clamp(20px,4vw,64px);bottom:clamp(24px,5vh,56px);z-index:2;max-width:22ch}
+.fkick{font-family:var(--mono);font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--a2);margin-bottom:10px}
+.kicker-big{font-size:clamp(21px,3.4vw,46px);line-height:1.02;font-weight:800}
+.kicker-big em{font-style:normal;color:var(--a1)}
+
+/* ─── LINKS ─── */
+.lgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px}
+.lnk{display:flex;align-items:center;gap:15px;padding:19px 22px;background:var(--bg2);border:1px solid var(--line);
+  border-radius:4px;text-decoration:none;color:inherit;transition:transform .28s,border-color .28s}
+.lnk:hover{transform:translateY(-3px);border-color:rgba(200,255,61,.30)}
+.lmark{font-family:var(--mono);font-size:12px;color:var(--a1);flex:none}
+
+/* ─── CTA ─── */
+.cta{position:relative;background:var(--bg2);border:1px solid rgba(232,118,58,.24);border-radius:6px;
+  padding:clamp(28px,4vw,52px);overflow:hidden;cursor:pointer;animation:ctaglow 3s ease-in-out infinite}
+@keyframes ctaglow{0%,100%{box-shadow:0 0 0 rgba(232,118,58,0),0 20px 60px rgba(0,0,0,.5)}
+                   50%{box-shadow:0 0 46px rgba(232,118,58,.20),0 20px 60px rgba(0,0,0,.5)}}
+.cta::before{content:'';position:absolute;top:-45%;left:-12%;width:400px;height:400px;border-radius:50%;
+  background:radial-gradient(circle,rgba(232,118,58,.15),transparent 66%);pointer-events:none}
+.cta::after{content:'';position:absolute;bottom:-45%;right:-12%;width:400px;height:400px;border-radius:50%;
+  background:radial-gradient(circle,rgba(200,255,61,.10),transparent 66%);pointer-events:none}
+.ctahit{position:absolute;inset:0;z-index:1}
+.cta > *:not(.ctahit){position:relative;z-index:2}
+.cta h2{margin-bottom:30px;font-size:clamp(21px,3.1vw,40px)}
+.cta h2 em{font-style:normal;background:linear-gradient(100deg,var(--a1),var(--gold));-webkit-background-clip:text;background-clip:text;color:transparent}
+.ctacols{display:grid;grid-template-columns:1fr 1fr;gap:clamp(22px,3vw,50px)}
+@media(max-width:760px){.ctacols{grid-template-columns:1fr;gap:26px}}
+.ctacol h4{font-family:var(--mono);font-size:11px;letter-spacing:.2em;color:var(--tx3);margin-bottom:15px;font-weight:400}
+.ctacol ul{list-style:none}
+.ctacol li{margin-bottom:11px;padding-left:29px;position:relative;font-size:15px;color:var(--tx)}
+.ctacol li span{position:absolute;left:0}
+.ctabot{display:flex;align-items:center;justify-content:space-between;gap:22px;flex-wrap:wrap;
+  margin-top:34px;padding-top:26px;border-top:1px solid var(--line)}
+.free{font-family:'Benzin',sans-serif;text-transform:uppercase;font-size:15px;font-weight:700}
+.free em{font-style:normal;color:var(--a2)}
+.ctabtn{padding:16px 34px;border-radius:3px;background:linear-gradient(135deg,var(--a1),var(--gold));color:#0B0A09;
+  font-family:'Benzin',sans-serif;font-weight:800;text-transform:uppercase;font-size:14px;letter-spacing:.04em;
+  text-decoration:none;box-shadow:0 12px 40px rgba(232,118,58,.34);transition:transform .25s}
+.cta:hover .ctabtn{transform:translateY(-2px)}
+
+/* ─── FOOTER ─── */
+footer{border-top:1px solid var(--line);margin-top:clamp(40px,7vh,90px)}
+.fin{max-width:1360px;margin:0 auto;padding:44px clamp(20px,4vw,64px);display:flex;justify-content:space-between;align-items:center;gap:22px;flex-wrap:wrap}
+.fbrand{font-family:'Benzin',sans-serif;font-weight:800;text-transform:uppercase;font-size:17px}
+.fbrand span{color:var(--a1)}
+.ftag{color:var(--tx3);font-size:14px;margin-top:5px}
+.fyt{font-family:var(--mono);font-size:12px;color:var(--tx2);text-decoration:none;border:1px solid var(--line);
+  padding:11px 18px;border-radius:2px;transition:all .25s;cursor:pointer}
+.fyt:hover{border-color:var(--a1);color:var(--a1)}
+
+/* ─── REVEAL ─── */
+.rv{opacity:0;transform:translateY(26px) scale(.985);transition:opacity .7s cubic-bezier(.22,1,.36,1),transform .7s cubic-bezier(.22,1,.36,1)}
+.rv.on{opacity:1;transform:none}
+@media(prefers-reduced-motion:reduce){.rv{opacity:1;transform:none;transition:none}.heroimg,.fimg{transform:none!important}}
+</style>
+</head>
+<body>
+
+<div id="progress"></div>
+<div id="cursorglow"></div>
+
+<nav>
+  <div class="navin">
+    <div class="brand">МАСТО<span>ДОНТ</span></div>
+    <div class="navlinks">
+      <a href="#tools">Инструменты</a>
+      <a href="#steps">Шаги</a>
+      <a href="#links">Ссылки</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="heroimg" id="heroimg"></div>
+  <div class="heroshade"></div>
+  <div class="heroin">
+    <span class="badge rv">Материалы к уроку</span>
+    <h1 class="rv">Как я превратил Claude в <em>супермена поиска</em></h1>
+    <p class="herosub rv">Один ключ открывает агенту платные источники данных - и он перестаёт выдумывать цифры. Все промпты из видео здесь, копируй и повторяй.</p>
+    <a class="ytbtn rv" href="ССЫЛКА_НА_ВИДЕО" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.6A3 3 0 0 0 .5 6.2 31 31 0 0 0 0 12a31 31 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.6 9.4.6 9.4.6s7.5 0 9.4-.6a3 3 0 0 0 2.1-2.1A31 31 0 0 0 24 12a31 31 0 0 0-.5-5.8zM9.5 15.6V8.4l6.3 3.6-6.3 3.6z"/></svg>
+      Смотреть видео
+    </a>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <div class="seclabel rv">Результат</div>
+    <h2 class="rv">Что ты <em>научишься делать</em></h2>
+    <div class="grid">
+      <div class="lcard rv"><div class="lico">01 / ДОСТУП</div><p>Давать Claude Code доступ к платным источникам одним ключом - Similarweb, Ahrefs, Semrush, Reddit, X</p></div>
+      <div class="lcard rv"><div class="lico">02 / СПРОС</div><p>Проверять спрос на свою идею по реальным поисковым запросам, с разбивкой по странам</p></div>
+      <div class="lcard rv"><div class="lico">03 / КОНКУРЕНТЫ</div><p>Разбирать конкурентов по настоящей посещаемости и каналам трафика, а не по ощущениям</p></div>
+      <div class="lcard rv"><div class="lico">04 / БОЛИ</div><p>Вытаскивать живые боли аудитории из обсуждений и класть их в тексты сайта построчно</p></div>
+      <div class="lcard rv"><div class="lico">05 / ПРОДУКТ</div><p>Собирать сайт бренда на данных трёх исследований, а не из головы</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="tools">
+  <div class="wrap">
+    <div class="seclabel rv">Подготовка</div>
+    <h2 class="rv">Что <em>понадобится</em></h2>
+    <a class="tool rv" href="https://aisa.one/" target="_blank" rel="noopener">
+      <div><div class="tname">AIsa</div><div class="turl">aisa.one</div></div>
+      <span class="tpill">оплата по факту</span></a>
+    <a class="tool rv" href="https://claude.ai/" target="_blank" rel="noopener">
+      <div><div class="tname">Claude Code</div><div class="turl">claude.ai</div></div>
+      <span class="tpill pay">подписка</span></a>
+    <a class="tool rv" href="https://console.aisa.one" target="_blank" rel="noopener">
+      <div><div class="tname">Консоль AIsa</div><div class="turl">console.aisa.one - здесь берётся API-ключ</div></div>
+      <span class="tpill">ключ</span></a>
+  </div>
+</section>
+
+<section id="steps">
+  <div class="wrap" style="padding-bottom:0">
+    <div class="seclabel rv">Пошагово</div>
+    <h2 class="rv">Как это <em>повторить</em></h2>
+
+    <div class="step rv">
+      <div class="stepnum">01</div>
+      <div>
+        <h3>Создаём ключ</h3>
+        <p>Заходим в консоль AIsa, пополняем баланс и жмём New API Key. Там же можно поставить лимит расхода на ключ и ограничить список моделей - чтобы агент не разгулялся.</p>
+        <ul class="acts">
+          <li>Открой console.aisa.one</li>
+          <li>Пополни баланс</li>
+          <li>Нажми New API Key и скопируй ключ</li>
+        </ul>
+        <div class="note"><b>⚙️ Настройки:</b> ключ показывается один раз - сохрани сразу. Лимит расхода ставится тут же, при создании.</div>
+      </div>
+    </div>
+
+    <div class="step rv">
+      <div class="stepnum">02</div>
+      <div>
+        <h3>Обучаем агента</h3>
+        <p>Этот шаг почти все пропускают. Ключ ты дал, но Claude не знает, что за ним лежит. Одним сообщением даём ему две ссылки: документацию и полную спецификацию со всеми адресами.</p>
+        <div class="pbox">
+          <div class="phead"><span class="plabel">💬 Промпт 1 - обучение</span><button class="copy">Скопировать</button></div>
+          <div class="pbody">я подключаю сервис aisa. через него ты получаешь доступ к платным источникам данных одним ключом. вот ключ: ВСТАВЬ_СЮДА_КЛЮЧ - сохрани его себе и больше в чат не выводи.
+
+что там есть: similarweb - посещаемость любого сайта и откуда туда идут люди. ahrefs и semrush - поисковые данные и позиции. dataforseo - сколько раз что ищут в гугле, по странам. reddit, x, youtube, instagram, pinterest - живые обсуждения и посты. apollo и waveinflu - компании, люди и блогеры с контактами. tavily, exa, perplexity, firecrawl - поиск и чтение страниц.
+
+как разобраться: сначала прочитай их документацию https://aisa.one/docs/llms.txt - там написано, что это за сервис, как устроена авторизация, как считаются деньги, какие бывают ошибки и лимиты. потом скачай полную спецификацию https://aisa.one/openapi.yaml и держи у себя - в ней все адреса со всеми параметрами. спецификацию целиком не читай, ищи в ней по названию источника.
+
+данные берутся с https://api.aisa.one/apis/v1, ключ передаётся заголовком Authorization: Bearer.
+
+сейчас ничего не запускай. прочитай доки, скачай спецификацию, посмотри что доступно и скажи одной строкой, что готов.</div>
+        </div>
+        <div class="note"><b>💡 Зачем обе ссылки:</b> в короткой документации Similarweb не упоминается вообще. Дашь только доки - агент до главного источника просто не доберётся.</div>
+      </div>
+    </div>
+
+    <div class="step rv">
+      <div class="stepnum">03</div>
+      <div>
+        <h3>Исследование 1 - есть ли рынок</h3>
+        <p>Даём бизнес-цель, а не маршрут. Куда идти за данными, агент решает сам: сначала поисковый спрос, потом обсуждения, потом открытый веб.</p>
+        <div class="pbox">
+          <div class="phead"><span class="plabel">💬 Промпт 2 - спрос и рынок</span><button class="copy">Скопировать</button></div>
+          <div class="pbody">я собираюсь выпускать кастомные машины в постапокалиптическом стиле, как в безумном максе: грузовики с шипами, самодельные багги, джипы с пулемётами на крыше и гигантскими колёсами. через aisa выясни: есть ли на это спрос, в каких странах он выше, кто там уже работает, чего люди боятся при покупке и через какие каналы их искать. каждый вывод подкрепи данными и напиши, из какого источника ты его взял</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="frame">
+  <div class="fimg" style="background-image:url('img/mid.jpg')"></div>
+  <div class="fshade"></div>
+  <div class="fcap">
+    <div class="fkick">Исследование → продукт</div>
+    <div class="kicker-big">Сначала <em>цифры</em>, потом бренд</div>
+  </div>
+</div>
+
+<section>
+  <div class="wrap" style="padding-top:clamp(20px,3vh,44px)">
+    <div class="step rv">
+      <div class="stepnum">04</div>
+      <div>
+        <h3>Исследование 2 - как устроены большие</h3>
+        <p>Смотрим на крупных игроков ниши: сколько людей к ним приходит и откуда именно. Прямые конкуренты для этого не обязательны - важно понять, как устроен бизнес в этой отрасли.</p>
+        <div class="pbox">
+          <div class="phead"><span class="plabel">💬 Промпт 3 - конкуренты и трафик</span><button class="copy">Скопировать</button></div>
+          <div class="pbody">разбери tesla.com, lamborghini.com и porsche.com. сравни позиционирование, ключевые особенности, источники трафика, отзывы клиентов и контентные каналы. сделай отчёт и предложи три способа отстроиться от них. трафик и каналы привлечения бери через similarweb в aisa, отзывы владельцев - из reddit и x</div>
+        </div>
+        <div class="note"><b>💡 Про Similarweb:</b> официально это корпоративный продукт с годовым контрактом, цену там даже не публикуют. AIsa - вторая площадка в мире с официальным доступом к их API пятой версии, и данные берутся по запросу.</div>
+      </div>
+    </div>
+
+    <div class="step rv">
+      <div class="stepnum">05</div>
+      <div>
+        <h3>Исследование 3 - что говорят живые люди</h3>
+        <p>Цифры цифрами, а тексты пишутся словами аудитории. Этот шаг даёт словарь ниши и настоящие боли - агент заходит внутрь обсуждений и читает комментарии, а не заголовки.</p>
+        <div class="pbox">
+          <div class="phead"><span class="plabel">💬 Промпт 4 - живые слова и боли</span><button class="copy">Скопировать</button></div>
+          <div class="pbody">собери через aisa, что люди реально говорят про кастомные внедорожники, самодельные багги и постапокалиптические сборки машин. какими словами их описывают, что спрашивают чаще всего, на что жалуются, чего им не хватает. источники - reddit, x и youtube. дай живые цитаты со ссылками</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step rv">
+      <div class="stepnum">06</div>
+      <div>
+        <h3>Собираем сайт на этих данных</h3>
+        <p>Одним промптом «сделай красиво» получишь нейросетевой шаблон, который видно за километр. Поэтому прикладываем пять скринов сайта-референса и просим разобрать его вслух прежде, чем писать код.</p>
+        <ul class="acts">
+          <li>Приложи 5 скринов сайта, который нравится по стилю</li>
+          <li>Положи три отчёта из прошлых шагов в папку проекта</li>
+          <li>Отправь промпт целиком</li>
+        </ul>
+        <div class="pbox">
+          <div class="phead"><span class="plabel">💬 Промпт 5 - сборка сайта</span><button class="copy">Скопировать</button></div>
+          <div class="pbody">собери сайт. тема: автомобильный бренд MASTODONTPOCALYPSE, кастомные постапокалиптические машины ручной сборки в эстетике безумного макса. три модели, у каждой своя страница: грузовик с шипами на таранном бампере, самодельный багги, джип с пулемётом на крыше и гигантскими колёсами. отдельной строкой - лимитированная серия: винтажные машины шестидесятых, перекованные в монстров.
+
+стиль бери со скринов, которые я приложил. не тему, не цвета буквально, не содержание - систему: как дышит воздух, какого размера шрифты, как текст стоит на странице, чем разделены блоки, как ведут себя картинки.
+
+разбери референс по пунктам ПЕРЕД тем как писать код, и назови вслух:
+- на чём держится сетка и сколько в ней воздуха
+- какие два шрифта в работе и какой из них крупный
+- чем отделены блоки друг от друга
+- за счёт чего он выглядит дорого
+
+содержание бери из трёх отчётов в папке. позиционирование - из того, что люди не могут найти на рынке. тексты пиши их словами: они говорят "риг", а не "внедорожник". на главной закрой три страха покупателя: надёжность после переделки, гарантия, сколько это будет стоить при перепродаже.
+
+ВЁРСТКА
+минимум 12 блоков. у каждого своя вёрстка - не двенадцать одинаковых секций подряд, а разный ритм: где-то картинка во весь экран, где-то две колонки, где-то одна строка гигантским шрифтом, где-то узкая колонка с большим пустым полем, где-то список на волосяных линейках, где-то сетка со сбитой вертикалью.
+
+обязательно должны быть: первый экран · что это и для кого · как устроено · три модели · что входит · цифры · отзывы · цена · частые вопросы · финальный призыв.
+
+на странице каждой модели: видео, как машина едет, и разбор узлов крупным планом с подписями - кенгурятник с шипами, отвал, что стоит на крыше. как apple разбирает камеру телефона.
+
+ШРИФТЫ
+два шрифта, не больше. ни одного из этого списка: Inter, Roboto, Montserrat, Open Sans, Poppins, Space Grotesk, Playfair. бери с fontshare.com или google fonts то, что реально держит характер - и объясни одной строкой, почему выбрал именно эту пару.
+
+АНИМАЦИИ
+строки заголовков выезжают из-под маски по одной, с задержкой между строками. абзацы проявляются по словам. картинки открываются шторкой и едут медленным параллаксом. цифры накручиваются. всё плавно и медленно, ease-out, ничего не дёргается.
+
+ТЕХНИКА
+анимируй только transform и opacity. ширину, высоту, отступы и margin не анимируй никогда. размеры шрифтов и отступы - на clamp. блоки разделяй волосяными линиями в один пиксель, а не карточками с тенями. один акцентный цвет на весь сайт, и тот в двух-трёх местах. уважай prefers-reduced-motion. один блок - одно действие и одна мысль.
+
+КАРТИНКИ
+сам реши, сколько кадров нужно этому сайту и где они стоят. генери их через aisa, модель gpt-image-2, качество 2K, одним общим описанием стиля на всю пачку - чтобы кадры были из одного мира: пустынная пыль, пасмурный плоский свет, матовая краска в царапинах, настоящий износ, зерно плёнки. никакого читаемого текста, букв и логотипов внутри картинок.
+
+ЗАПРЕЩЕНО
+фиолетово-синие градиенты. эмодзи. наборные иконки. карточки с тенями и скруглениями. центрированный лендинг из шаблона.
+
+ОТДАЧА
+клади в отдельную папку. в конце дай мне путь к index.html - я открою файлом, локальный сервер не нужен.</div>
+        </div>
+        <div class="note"><b>💡 Картинки для сайта</b> идут через тот же ключ - отдельный сервис и второй счёт не нужны.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="frame">
+  <div class="fimg" style="background-image:url('img/fin.jpg')"></div>
+  <div class="fshade"></div>
+  <div class="fcap">
+    <div class="fkick">Итог</div>
+    <div class="kicker-big">Перестать <em>выдумывать</em></div>
+  </div>
+</div>
+
+<section id="links">
+  <div class="wrap">
+    <div class="seclabel rv">Справочник</div>
+    <h2 class="rv">Все <em>ссылки</em></h2>
+    <div class="lgrid">
+      <a class="lnk rv" href="https://aisa.one/" target="_blank" rel="noopener"><span class="lmark">01</span><div><div class="tname">AIsa</div><div class="turl">aisa.one</div></div><span class="tpill">сервис</span></a>
+      <a class="lnk rv" href="https://aisa.one/api" target="_blank" rel="noopener"><span class="lmark">02</span><div><div class="tname">Каталог источников</div><div class="turl">aisa.one/api</div></div><span class="tpill">список</span></a>
+      <a class="lnk rv" href="https://console.aisa.one" target="_blank" rel="noopener"><span class="lmark">03</span><div><div class="tname">Консоль и ключ</div><div class="turl">console.aisa.one</div></div><span class="tpill">ключ</span></a>
+      <a class="lnk rv" href="https://aisa.one/docs/llms.txt" target="_blank" rel="noopener"><span class="lmark">04</span><div><div class="tname">Документация</div><div class="turl">aisa.one/docs/llms.txt</div></div><span class="tpill">для агента</span></a>
+      <a class="lnk rv" href="https://aisa.one/openapi.yaml" target="_blank" rel="noopener"><span class="lmark">05</span><div><div class="tname">Спецификация</div><div class="turl">aisa.one/openapi.yaml</div></div><span class="tpill">711 адресов</span></a>
+      <a class="lnk rv" href="https://claude.ai/" target="_blank" rel="noopener"><span class="lmark">06</span><div><div class="tname">Claude Code</div><div class="turl">claude.ai</div></div><span class="tpill pay">подписка</span></a>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap" style="padding-top:0">
+    <div class="cta rv">
+      <a class="ctahit" href="https://t.me/mastodont_aibot?start=mini_kurs" target="_blank" rel="noopener" aria-label="Забрать интенсив"></a>
+      <h2>Первые <em>$2к</em> на ИИ - бесплатный интенсив</h2>
+      <div class="ctacols">
+        <div class="ctacol">
+          <h4>Внутри</h4>
+          <ul>
+            <li><span>✅</span>Реальный демо AntiGravity вживую</li>
+            <li><span>✅</span>Софт, который за 5 минут находит компании без сайтов с готовыми контактами</li>
+            <li><span>✅</span>Кейсы учеников: $1650 за 3 проекта без команды</li>
+          </ul>
+        </div>
+        <div class="ctacol">
+          <h4>Два бонуса в конце</h4>
+          <ul>
+            <li><span>💰</span>50 скучных и самых прибыльных ниш без конкуренции</li>
+            <li><span>🚀</span>Чек-лист: первые $500 за 7 дней</li>
+          </ul>
+        </div>
+      </div>
+      <div class="ctabot">
+        <div class="free"><em>Бесплатно.</em> Навсегда.</div>
+        <span class="ctabtn">Забрать интенсив</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="fin">
+    <div>
+      <div class="fbrand">МАСТО<span>ДОНТ</span></div>
+      <div class="ftag">AI и нейросети - просто, по делу</div>
+    </div>
+    <span class="fyt" id="copyname">Как Я Превратил Claude в Супермена Поиска (AIsa)</span>
+  </div>
+</footer>
+
+<script>
+// прогресс чтения
+const pr=document.getElementById('progress');
+// свет за курсором
+const cg=document.getElementById('cursorglow');
+let cgx=0,cgy=0,tx=0,ty=0;
+window.addEventListener('mousemove',e=>{tx=e.clientX;ty=e.clientY;cg.style.opacity='1'},{passive:true});
+// параллакс
+const hero=document.getElementById('heroimg');
+const frames=[...document.querySelectorAll('.frame')];
+
+function raf(){
+  cgx+=(tx-cgx)*.12; cgy+=(ty-cgy)*.12;
+  cg.style.transform=`translate(${cgx}px,${cgy}px) translate(-50%,-50%)`;
+  const h=document.documentElement;
+  pr.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%';
+  if(hero) hero.style.transform=`translateY(${h.scrollTop*.06}px)`;
+  frames.forEach(f=>{
+    const r=f.getBoundingClientRect();
+    if(r.bottom>0&&r.top<innerHeight){
+      const p=(r.top+r.height/2-innerHeight/2)/innerHeight;
+      const im=f.querySelector('.fimg');
+      if(im) im.style.transform=`translateY(${p*-46}px)`;
+    }
+  });
+  requestAnimationFrame(raf);
+}
+if(!matchMedia('(prefers-reduced-motion:reduce)').matches) requestAnimationFrame(raf);
+
+// появление блоков
+const io=new IntersectionObserver((es)=>{
+  es.forEach((e,i)=>{ if(e.isIntersecting){ setTimeout(()=>e.target.classList.add('on'), i*70); io.unobserve(e.target);} });
+},{threshold:.12,rootMargin:'0px 0px -8% 0px'});
+
+document.querySelectorAll('.rv').forEach(el=>{
+  if(el.getBoundingClientRect().top < innerHeight*1.05){
+    el.style.transition='none'; el.classList.add('on');
+    requestAnimationFrame(()=>{ el.style.transition=''; });
+  } else io.observe(el);
+});
+
+// наклон карточек
+document.querySelectorAll('.lcard').forEach(c=>{
+  c.style.transformStyle='preserve-3d';
+  c.addEventListener('mousemove',e=>{
+    const r=c.getBoundingClientRect();
+    const px=(e.clientX-r.left)/r.width-.5, py=(e.clientY-r.top)/r.height-.5;
+    c.style.transform=`perspective(760px) rotateY(${px*7}deg) rotateX(${-py*7}deg) translateY(-3px)`;
+  });
+  c.addEventListener('mouseleave',()=>{c.style.transform=''});
+});
+
+// копирование промптов
+document.querySelectorAll('.copy').forEach(b=>{
+  b.addEventListener('click',()=>{
+    const t=b.closest('.pbox').querySelector('.pbody').innerText;
+    navigator.clipboard.writeText(t).then(()=>{
+      b.textContent='✓ Скопировано!'; b.classList.add('done');
+      setTimeout(()=>{b.textContent='Скопировать';b.classList.remove('done')},2000);
+    });
+  });
+});
+
+// копирование названия в футере
+const cn=document.getElementById('copyname');
+cn.addEventListener('click',()=>{
+  navigator.clipboard.writeText(cn.textContent.trim()).then(()=>{
+    const o=cn.textContent; cn.textContent='✓ Скопировано';
+    setTimeout(()=>cn.textContent=o,2000);
+  });
+});
+</script>
+</body>
+</html>
